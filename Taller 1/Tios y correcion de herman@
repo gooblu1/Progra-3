@@ -1,0 +1,39 @@
+padre(abraham, herbert). 
+padre(abraham, homero). 
+padre(clancy, marge). 
+padre(clancy, patty).
+padre(clancy, selma). 
+padre(homero, bart). 
+padre(homero, lisa).
+padre(homero, maggie).
+madre(mona, herbert). 
+madre(mona, homero). 
+madre(jacqueline, marge).
+madre(jacqueline, patty).
+madre(jacqueline, selma).
+madre(marge, bart).
+madre(marge, lisa).
+madre(marge, maggie).
+madre(selma, ling).
+hombre(abraham).
+hombre(homero).
+hombre(bart).
+hombre(herbert).
+hombre(clancy).
+mujer(marge).
+mujer(jacqueline).
+mujer(lisa).
+mujer(maggie).
+mujer(ling).
+mujer(selma).
+mujer(patty).
+mujer(mona).
+
+hermano(A,N) :- ((padre(P,A), padre(P,N)) ; (madre(P,A), madre(P,N))) , hombre(A),A \== N.
+hermana(A,N) :- ((padre(P,A), padre(P,N)) ; (madre(P,A), madre(P,N))) , mujer(A), A \== N.
+
+abuelo(A, N) :- padre(A, P), (padre(P, N); madre(P, N)). 
+abuelo(A, N) :- madre(A, P), (padre(P, N); madre(P, N)).
+
+tio(A,N) :- hermano(A,P),(padre(P, N); madre(P, N)).
+tia(A,N) :- hermana(A,P),(padre(P, N); madre(P, N)).
