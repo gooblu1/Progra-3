@@ -1,0 +1,21 @@
+padre(abraham, herbert). 
+padre(abraham, homero). 
+padre(clancy, marge). 
+padre(clancy, patty).
+padre(clancy, selma). 
+padre(homero, bart). 
+padre(homero, lisa).
+padre(homero, maggie).
+madre(mona, herbert). 
+madre(mona, homero). 
+madre(jacqueline, marge).
+madre(jacqueline, patty).
+madre(jacqueline, selma).
+madre(marge, bart).
+madre(marge, lisa).
+madre(marge, maggie).
+madre(selma, ling).
+
+
+abuelo(A, N) :- padre(A, P), (padre(P, N); madre(P, N)). 
+abuelo(A, N) :- madre(A, P), (padre(P, N); madre(P, N)).
