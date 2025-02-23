@@ -33,10 +33,10 @@ hermano(A,N) :- ((padre(P,A), padre(P,N)) ; (madre(P,A), madre(P,N))) , hombre(A
 hermana(A,N) :- ((padre(P,A), padre(P,N)) ; (madre(P,A), madre(P,N))) , mujer(A).
 
 abuelo(A, N) :- padre(A, P), (padre(P, N); madre(P, N)). 
-abuelo(A, N) :- madre(A, P), (padre(P, N); madre(P, N)).
+abuela(A, N) :- madre(A, P), (padre(P, N); madre(P, N)).
 
 tio(A,N) :- hermano(A,P),(padre(P, N); madre(P, N)).
 tia(A,N) :- hermana(A,P),(padre(P, N); madre(P, N)).
 
-primo(A,N) :- (madre(P, N)),(madre(B, A)),(hermana(B,P)),hombre(A).
-prima(A,N) :- (madre(P, N)),(madre(B, A)),(hermana(B,P)),mujer(A).
+primo(A,N) :- (madre(P, N)),(madre(B, A)),hermana(B,P),hombre(A).
+prima(A,N) :- (madre(P, N)),(madre(B, A)),hermana(B,P),mujer(A).
