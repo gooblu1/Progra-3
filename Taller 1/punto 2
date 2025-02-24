@@ -2,4 +2,4 @@ estadounidense(west).
 vendearmasapaiseshostiles(west).
 paiseshostiles(corea).
 
-es_criminal(N,M) :- estadounidense(N),vendearmasapaiseshostiles(N),paiseshostiles(M).
+es_criminal(Nombre,pais_hostil) :- estadounidense(Nombre),vendearmasapaiseshostiles(Nombre),paiseshostiles(pais_hostil).
