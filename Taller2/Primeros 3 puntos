@@ -1,0 +1,16 @@
+conexion(vancouver, edmonton, 16).
+conexion(edmonton, saskatoon, 12).
+conexion(regina, saskatoon, 7).
+conexion(vancouver, calgary, 13).
+conexion(calgary, regina, 14).
+conexion(regina, winnipeg, 4).
+conexion(calgary, edmonton, 4).
+conexion(saskatoon, calgary, 9).
+conexion(saskatoon, winnipeg, 20).
+
+%poner la ultima variable como _
+conexion_entre(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo). 
+%poner las ultimas dos variables como _
+tiene_aristas(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo).
+%poner las ultimas dos variables como variables random y poner next
+conectado_con(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo).
