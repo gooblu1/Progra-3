@@ -12,11 +12,12 @@ conexion(calgary, regina, 14).
 conexion_entre(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo). 
 %2
 %poner las ultimas dos variables como variables random y poner next
-conectado_con(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo).
+conectado_con_regina(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo).
 %3
 %poner las ultimas dos variables como _
 tiene_aristas(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo).
 %4
+conectado_con(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad2,Costo).
 conectado_con(Ciudad1,Ciudad2,Costo) :- conexion(Ciudad1,Ciudad3,Costo1),conectado_con(Ciudad3,Ciudad2,Costo2),Costo is Costo1+Costo2.
 %5
 es_posible_conectado_con(Ciudad1,Ciudad2,_) :- conexion(Ciudad1,Ciudad2,_).
