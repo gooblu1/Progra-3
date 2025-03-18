@@ -1,0 +1,15 @@
+progenitor(clara, jose).
+progenitor(tomas, jose).
+progenitor(tomas, isabel).
+progenitor(jose, ana).
+progenitor(jose, patricia).
+progenitor(patricia, jaime).
+hombre(jose).
+hombre(tomas).
+hombre(jaime).
+mujer(clara).
+mujer(isabel).
+mujer(ana).
+mujer(patricia).
+abuelo_de(A,N):- progenitor(X,N),progenitor(A,X),hombre(A).
+tios_de(T,S):-abuelo_de(X,S),progenitor(X,T).
