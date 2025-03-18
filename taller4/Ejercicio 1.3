@@ -1,0 +1,68 @@
+progenitor(clara, jose).
+progenitor(tomas, jose).
+progenitor(tomas, isabel).
+progenitor(jose, ana).
+progenitor(jose, patricia).
+progenitor(patricia, jaime).
+
+hombre(jose).
+hombre(tomas).
+hombre(jaime).
+
+mujer(clara).
+mujer(isabel).
+mujer(ana).
+mujer(patricia).
+
+difi(X, Y) :- 
+    X \= Y.
+
+
+es_madre(X) :-
+    mujer(X),
+    progenitor(X, _).
+
+es_hijo(X) :-
+    hombre(X),
+    progenitor(_, X).
+
+es_padre(X) :-
+    hombre(X),
+    progenitor(X, _).
+
+hermana_de(X, Y) :-
+    mujer(X),
+    progenitor(Z, X),
+    progenitor(Z, Y),
+    difi(X, Y).
+
+
+hermano_de(X, Y) :-
+    hombre(X),
+    progenitor(Z, X),
+    progenitor(Z, Y),
+    difi(X, Y).
+
+
+tia(X, Y) :-
+    mujer(X),
+    progenitor(Z, Y),
+    hermana_de(X, Z).
+
+tio(X, Y) :-
+    hombre(X),
+    progenitor(Z, Y),
+    hermano_de(X, Z).
+
+abuelo_de(X, Y) :-
+    progenitor(Z, Y),
+    progenitor(X, Z),
+    hombre(X).
+
+abuela_de(X, Y) :-
+    progenitor(Z, Y),
+    progenitor(X, Z),
+    mujer(X).
+
+
+
