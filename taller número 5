@@ -1,0 +1,61 @@
+familia([[padre, abraham, [herbert, homero]],
+         [padre, clancy, [marge, patty, selma]],
+         [padre, homero,[bart, lisa, maggie]],
+         [madre, mona, [herbert, homero]],
+         [madre, jacqueline, [selma,marge, patty]],
+         [madre, marge, [bart, lisa, maggie]],
+         [madre, selma, [ling]]]).
+
+hermanx_de(M, N):- familia(F),
+              member([padre, _, Hijos], F),
+              member(M, Hijos),
+              member(N, Hijos),
+              M \= N.
+
+hermanx_de(M, N):- familia(F),
+              member([madre, _, Hijos], F),
+              member(M, Hijos),
+              member(N, Hijos),
+              M \= N.
+
+padre_de(P,H):- familia(F),
+    		  member([padre, P,Hijos],F),
+			  member(H,Hijos),!.
+
+madre_de(M,H):- familia(F),
+    		  member([madre, M,Hijos],F),
+			  member(H,Hijos),!.
+    
+tio_de(T,S):-familia(F),
+              hermanx_de(T, X),  
+              member([padre, X, Hijos], F),  
+              member(S, Hijos),!.
+
+tia_de(T, S) :- familia(F),
+              hermanx_de(T, X),  
+              member([madre, X, Hijos], F),  
+              member(S, Hijos),!. 
+
+abuelo_de(A,N):- familia(F),
+    		  member([padre, A, Hijos], F),
+              member(X,Hijos),
+    		  member([padre, X, Nietos],F),
+    		  member(N,Nietos),!.
+
+abuelo_de(A,N):- familia(F),
+    		  member([padre, A, Hijos], F),
+              member(X,Hijos),
+    		  member([madre, X, Nietos],F),
+    		  member(N,Nietos),!.
+
+abuela_de(A,N):- familia(F),
+    		  member([madre, A, Hijos], F),
+              member(X,Hijos),
+    		  member([padre, X, Nietos],F),
+    		  member(N,Nietos),!.
+
+abuela_de(A,N):- familia(F),
+    		  member([madre, A, Hijos], F),
+              member(X,Hijos),
+    		  member([madre, X, Nietos],F),
+    		  member(N,Nietos),!.
