@@ -1,0 +1,62 @@
+%familia simpson usando estructuras
+familia([
+    progenitor(padre, abraham, [herbert, homero]),
+    progenitor(padre, clancy, [marge, patty, selma]),
+    progenitor(padre, homero, [bart, lisa, maggie]),
+    progenitor(madre, mona, [herbert, homero]),
+    progenitor(madre, jacqueline, [selma, marge, patty]),
+    progenitor(madre, marge, [bart, lisa, maggie]),
+    progenitor(madre, selma, [ling])
+]).
+
+
+hermanx_de(M, N) :-
+    familia(F),
+    member(progenitor(_, _, Hijos), F),
+    member(M, Hijos),
+    member(N, Hijos),
+    M \= N,!.
+
+
+padre_de(P, H) :-
+    familia(F),
+    member(progenitor(padre, P, Hijos), F),
+    member(H, Hijos),!.
+
+
+madre_de(M, H) :-
+    familia(F),
+    member(progenitor(madre, M, Hijos), F),
+    member(H, Hijos),!.
+
+
+tio_de(T, S) :-
+    hermanx_de(T, X),
+    familia(F),
+    member(progenitor(padre, X, Hijos), F),
+    member(S, Hijos),!.
+
+
+tia_de(T, S) :-
+    hermanx_de(T, X),
+    familia(F),
+    member(progenitor(madre, X, Hijos), F),
+    member(S, Hijos),!.
+
+
+abuelo_de(A, N) :-
+    familia(F),
+    member(progenitor(padre, A, Hijos), F),
+    member(X, Hijos),
+    ( member(progenitor(padre, X, Nietos), F)
+    ; member(progenitor(madre, X, Nietos), F) ),
+    member(N, Nietos),!.
+
+
+abuela_de(A, N) :-
+    familia(F),
+    member(progenitor(madre, A, Hijos), F),
+    member(X, Hijos),
+    ( member(progenitor(padre, X, Nietos), F)
+    ; member(progenitor(madre, X, Nietos), F) ),
+    member(N, Nietos),!.
