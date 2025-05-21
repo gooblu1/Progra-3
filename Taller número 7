@@ -1,0 +1,57 @@
+mport copy
+from collections import deque, defaultdict
+
+Cols = "ABCDEFGHI"
+Rows = set(range(1,10))
+
+def clearBoard():
+    return {f"{c}{r}": set(range(1,10)) for r in Rows for c in Cols}
+
+def loadBoard(board, fileName):
+    with open(fileName) as f:
+        for key in board:
+            v = int(f.readline())
+            if 1 <= v <= 9:
+                board[key] = {v}
+    return board
+
+def defineRows():
+    return [[f"{c}{r}" for c in Cols] for r in Rows]
+
+def defineCols():
+    return [[f"{c}{r}" for r in Rows] for c in Cols]
+
+def defineBoxes():
+    boxes=[]
+    for rs in (1,4,7):
+        for cs in (0,3,6):
+            boxes.append([f"{Cols[cs+dc]}{rs+dr}" for dr in range(3) for dc in range(3)])
+    return boxes
+
+UNITS = defineRows()+defineCols()+defineBoxes()
+NEIGHBORS = {v:set() for v in clearBoard()}
+for u in UNITS:
+    for v in u:
+        NEIGHBORS[v].update(u)-{v}
+
+def ac3(board):
+    queue = deque((xi,xj) for xi in NEIGHBORS for xj in NEIGHBORS[xi])
+    while queue:
+        xi,xj = queue.popleft()
+        if revise(board,xi,xj):
+            if not board[xi]: return False
+            for xk in NEIGHBORS[xi]-{xj}:
+                queue.append((xk,xi))
+    return True
+
+def revise(board, xi, xj):
+    removed=False
+    for v in set(board[xi]):
+        if all(v==w for w in board[xj]):
+            board[xi].remove(v); removed=True
+    return removed
+
+def select_var(board):
+    for v in sorted(board):
+        if len(board[v])>1: return v
+    return None
