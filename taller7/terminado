@@ -1,0 +1,96 @@
+import copy 
+from collections import deque, defaultdict 
+ 
+Cols = "ABCDEFGHI" 
+Rows = set(range(1,10)) 
+ 
+# 1. Inicialización 
+def clearBoard(): 
+    return {f"{c}{r}": set(range(1,10)) for r in Rows for c in Cols} 
+
+def loadBoard(board, fileName): 
+    with open(fileName) as f: 
+        for key in board: 
+            v = int(f.readline()) 
+            if 1 <= v <= 9: 
+                board[key] = {v} 
+    return board 
+
+# 2. Unidades y vecinos 
+def defineRows():  return [[f"{c}{r}" for c in Cols] for r in Rows] 
+def defineCols():  return [[f"{c}{r}" for r in Rows] for c in Cols] 
+def defineBoxes(): 
+    boxes=[] 
+    for rs in (1,4,7): 
+        for cs in (0,3,6): 
+            boxes.append([f"{Cols[cs+dc]}{rs+dr}" for dr in range(3) for dc in range(3)]) 
+    return boxes 
+UNITS = defineRows()+defineCols()+defineBoxes() 
+NEIGHBORS = {v:set() for v in clearBoard()} 
+for u in UNITS: 
+    for v in u: 
+        NEIGHBORS[v].update(u)-{v} 
+
+# 3. Look-Ahead: AC-3 
+def ac3(board): 
+    queue = deque((xi,xj) for xi in NEIGHBORS for xj in NEIGHBORS[xi]) 
+    while queue: 
+        xi,xj = queue.popleft() 
+        if revise(board,xi,xj): 
+            if not board[xi]: return False 
+            for xk in NEIGHBORS[xi]-{xj}: 
+                queue.append((xk,xi)) 
+    return True 
+
+def revise(board, xi, xj): 
+    removed=False 
+    for v in set(board[xi]): 
+        if all(v==w for w in board[xj]): 
+            board[xi].remove(v); removed=True 
+    return removed 
+
+# 4. Look-Back: Conflict-Directed Backjumping 
+def select_var(board): 
+    for v in sorted(board): 
+        if len(board[v])>1: return v 
+    return None 
+
+def backjump(board, order, conflicts): 
+    var = select_var(board) 
+    if var is None: return board 
+    for val in list(board[var]): 
+        newb = copy.deepcopy(board) 
+        newb[var] = {val} 
+        if not ac3(newb): 
+            for nb in NEIGHBORS[var]: 
+                if not newb[nb]: conflicts[var].add(nb) 
+            continue 
+        order.append(var) 
+        result = backjump(newb, order, conflicts) 
+        if result: return result 
+        if conflicts[var]: 
+            for prev in reversed(order[:-1]): 
+                if prev in conflicts[var]: 
+                    conflicts[prev].update(conflicts[var]-{prev}) 
+                    return None 
+        order.pop() 
+    return None 
+
+# 5. Visualización 
+def mostrar_tablero(board): 
+    print('+-------+-------+-------+') 
+    for r in range(1,10): 
+        vals = [str(next(iter(board[f'{c}{r}']))) if len(board[f'{c}{r}'])==1 else '.' for c in Cols] 
+        print('| {} {} {} | {} {} {} | {} {} {} |'.format(*vals)) 
+        if r%3==0: print('+-------+-------+-------+') 
+
+# 6. Ejecución 
+if __name__=='__main__': 
+    b = clearBoard(); loadBoard(b,'board.txt') 
+    ac3(b) 
+    conflicts = defaultdict(set) 
+    sol = backjump(b, [], conflicts) 
+    if sol: 
+        print('Sudoku resuelto:'); mostrar_tablero(sol) 
+    else: 
+        print('No hay solución detectada.')
