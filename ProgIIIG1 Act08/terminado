@@ -1,0 +1,223 @@
+import copy
+import itertools
+from collections import deque, defaultdict
+
+# ----------------------------
+# 1) UTILIDADES GENERALES
+# ----------------------------
+def combinaciones_de_suma(total, longitud):
+    """
+    Devuelve todas las tuplas (ordenadas ascendentemente) de
+    'longitud' números distintos en {1..9} cuya suma sea 'total'.
+    Ejemplo: combinaciones_de_suma(7, 3) = [(1,2,4)] (pues 1+2+4 = 7).
+    """
+    resultados = []
+    for combo in itertools.combinations(range(1, 10), longitud):
+        if sum(combo) == total:
+            resultados.append(combo)
+    return resultados
+
+# ----------------------------
+# 2) LECTURA Y PARSEO DEL TABLERO
+# ----------------------------
+def load_board(path):
+    """
+    Lee un archivo plano con el formato definido (ver sección 3).
+    Primera línea: N M (dimensiones).
+    Luego N líneas con M tokens cada una, separados por espacios.
+    Retorna N, M y raw_tokens (matriz de strings).
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        primera = f.readline().strip().split()
+        N, M = int(primera[0]), int(primera[1])
+        raw = []
+        for _ in range(N):
+            línea = f.readline().strip().split()
+            if len(línea) != M:
+                raise ValueError(f"Se esperaban {M} tokens en la fila, pero vino {len(línea)}.")
+            raw.append(línea)
+    return N, M, raw
+
+def parsear_tablero(N, M, raw_tokens):
+    """
+    A partir de 'raw_tokens':
+    - Detecta variables blancas (token == '.') y les asigna dominio {1..9}.
+    - Identifica pistas horizontales (Hxx), verticales (Vyy) y mixtas (Bhh_mm).
+    - Construye lista de bloques de suma y el mapa NEIGHBORS.
+    Retorna: variables (dict), bloques (lista), NEIGHBORS (dict).
+    """
+    variables = {}
+    pistas_h = []
+    pistas_v = []
+
+    for i in range(N):
+        for j in range(M):
+            token = raw_tokens[i][j]
+            if token == '.':
+                variables[(i, j)] = set(range(1, 10))
+            else:
+                if token == '*':
+                    continue
+                if token.startswith('H'):
+                    s = int(token[1:])
+                    pistas_h.append((i, j, s))
+                elif token.startswith('V'):
+                    t = int(token[1:])
+                    pistas_v.append((i, j, t))
+                elif token.startswith('B'):
+                    partes = token[1:].split('_')
+                    s = int(partes[0])
+                    t = int(partes[1])
+                    pistas_h.append((i, j, s))
+                    pistas_v.append((i, j, t))
+                else:
+                    raise ValueError(f"Token inválido en {(i, j)}: '{token}'")
+
+    bloques = []
+
+    for (i, j, s) in pistas_h:
+        entrada = []
+        col = j + 1
+        while col < M and raw_tokens[i][col] == '.':
+            entrada.append((i, col))
+            col += 1
+        if len(entrada) == 0:
+            raise ValueError(f"Pista H en {(i, j)} no tiene celdas blancas a su derecha.")
+        bloques.append({"vars": entrada, "suma": s, "tipo": "H"})
+
+    for (i, j, t) in pistas_v:
+        entrada = []
+        fila = i + 1
+        while fila < N and raw_tokens[fila][j] == '.':
+            entrada.append((fila, j))
+            fila += 1
+        if len(entrada) == 0:
+            raise ValueError(f"Pista V en {(i, j)} no tiene celdas blancas debajo.")
+        bloques.append({"vars": entrada, "suma": t, "tipo": "V"})
+
+    NEIGHBORS = {var: set() for var in variables}
+    for bloque in bloques:
+        vs = bloque["vars"]
+        for a in vs:
+            for b in vs:
+                if a != b:
+                    NEIGHBORS[a].add(b)
+
+    return variables, bloques, NEIGHBORS
+
+# ----------------------------
+# 3) AC-3 Y REVISE ADAPTADO A KAKURO
+# ----------------------------
+def revise(board, xi, xj, bloques, NEIGHBORS):
+    removed = False
+
+    for v in set(board[xi]):
+        if all(w == v for w in board[xj]):
+            board[xi].remove(v)
+            removed = True
+
+    bloques_de_xi = [b for b in bloques if xi in b["vars"]]
+    for bloque in bloques_de_xi:
+        vars_b = bloque["vars"]
+        S = bloque["suma"]
+        k = len(vars_b)
+        todas_combos = combinaciones_de_suma(S, k)
+        posición = vars_b.index(xi)
+        dominio_original = set(board[xi])
+        for v in dominio_original:
+            hay_soporte = False
+            for combo in todas_combos:
+                if combo[posición] != v:
+                    continue
+                ok = True
+                for idx, x in enumerate(vars_b):
+                    if x == xi:
+                        continue
+                    valor_necesario = combo[idx]
+                    if valor_necesario not in board[x]:
+                        ok = False
+                        break
+                if ok:
+                    hay_soporte = True
+                    break
+            if not hay_soporte:
+                if v in board[xi]:
+                    board[xi].remove(v)
+                    removed = True
+    return removed
+
+def ac3(board, bloques, NEIGHBORS):
+    queue = deque()
+    for xi in NEIGHBORS:
+        for xj in NEIGHBORS[xi]:
+            queue.append((xi, xj))
+
+    while queue:
+        xi, xj = queue.popleft()
+        if revise(board, xi, xj, bloques, NEIGHBORS):
+            if not board[xi]:
+                return False
+            for xk in NEIGHBORS[xi]:
+                if xk != xj:
+                    queue.append((xk, xi))
+    return True
+
+# ----------------------------
+# 4) BACKTRACKING CRONOLÓGICO
+# ----------------------------
+def select_var(board):
+    no_asignadas = [(v, len(board[v])) for v in board if len(board[v]) > 1]
+    if not no_asignadas:
+        return None
+    no_asignadas.sort(key=lambda x: x[1])
+    return no_asignadas[0][0]
+
+def backtracking(board, bloques, NEIGHBORS):
+    var = select_var(board)
+    if var is None:
+        return board
+    for val in list(board[var]):
+        newb = copy.deepcopy(board)
+        newb[var] = {val}
+        if ac3(newb, bloques, NEIGHBORS):
+            sol = backtracking(newb, bloques, NEIGHBORS)
+            if sol:
+                return sol
+    return None
+
+# ----------------------------
+# 5) MOSTRAR TABLERO RESULTADO
+# ----------------------------
+def mostrar_solución(N, M, raw_tokens, solution):
+    for i in range(N):
+        línea = []
+        for j in range(M):
+            token = raw_tokens[i][j]
+            if token == '.':
+                val = next(iter(solution[(i, j)]))
+                línea.append(str(val).center(3))
+            else:
+                línea.append(token.center(3))
+        print(" ".join(línea))
+    print()
+
+# ----------------------------
+# 6) MAIN
+# ----------------------------
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) != 2:
+        print("Uso: python kakuro_solver.py <ruta_al_archivo_board.txt>")
+        sys.exit(1)
+    ruta = sys.argv[1]
+    N, M, raw_tokens = load_board(ruta)
+    variables, bloques, NEIGHBORS = parsear_tablero(N, M, raw_tokens)
+    if not ac3(variables, bloques, NEIGHBORS):
+        print("Dominio vacío tras AC-3 inicial. Sin solución.")
+        sys.exit(1)
+    solucion = backtracking(variables, bloques, NEIGHBORS)
+    if solucion:
+        print("=== Kakuro resuelto: ===\n")
+        mostrar_solución(N, M, raw_tokens, solucion)
+    else:
+        print("No se encontró solución para el tablero.")
